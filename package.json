@@ -1,0 +1,9 @@
+{
+  "name": "ygopro-analytics-responser",
+  "version": "0.0.1",
+  "dependencies": {
+    "moment": "^2.21.0",
+    "pg": "^7.4.1",
+    "redis": "^2.8.0"
+  }
+}

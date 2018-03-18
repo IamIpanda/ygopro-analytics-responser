@@ -1,0 +1,36 @@
+{
+  "pg": {
+  },
+  "redis": {
+  },
+  "task": {
+    "table": [
+      "deck",
+      "count",
+      "single"
+    ],
+    "time": [
+      0,
+      1,
+      7,
+      15,
+      -999
+    ],
+    "source": [
+      "mycard-athletic",
+      "233-entertainment",
+      "mycard-tag",
+      "mycard-entertainment",
+      "mycard-custom",
+      "233-athletic",
+      "233-custom",
+      "233-tag"
+    ]
+  },
+  "listTime": [
+    "1-1",
+    "4-1",
+    "7-1",
+    "10-1"
+  ]
+}
