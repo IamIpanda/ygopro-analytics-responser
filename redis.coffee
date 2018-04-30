@@ -1,5 +1,5 @@
 redis = require 'redis'
-config = require './config.json'
+config = require './config'
 task = config.task
 client = redis.createClient config.redis
 
@@ -10,7 +10,7 @@ module.exports.save = (query) ->
         typeName = "#{name}_#{query.source}_#{query.period}"
         switch name
             when 'deck'
-                obj = part.rows
+                obj = part
                 continue unless obj
                 obj.forEach (child) ->
                     delete child.time
@@ -34,3 +34,21 @@ module.exports.save = (query) ->
                     json = JSON.stringify obj
                     client.set subTypeName, json
                     console.log "Setting redis #{subTypeName}"
+
+standardRedisPromise = (typeName) ->
+    new Promise (resolve, reject) ->
+        client.get typeName, (err, reply) ->
+            if err then reject err else resolve reply
+
+
+module.exports.load = (name, source, period, category) ->
+    typeName = "#{name}_#{source}_#{period}"
+    switch name
+        when 'deck'
+            return standardRedisPromise typeName
+        when 'count'
+            return standardRedisPromise typeName
+        when 'single'
+            typeName += "_#{category}"
+            return standardRedisPromise typeName
+    null
