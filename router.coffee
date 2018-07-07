@@ -1,4 +1,5 @@
 redis = require './redis'
+watcher = require './watcher'
 
 getPeriod = (type) ->
     switch type

@@ -2,9 +2,14 @@
   "name": "ygopro-analytics-responser",
   "version": "0.0.1",
   "dependencies": {
+    "coffeescript": "^2.3.1",
     "express": "^4.16.3",
     "moment": "^2.21.0",
+    "node-schedule": "^1.3.0",
     "pg": "^7.4.1",
     "redis": "^2.8.0"
+  },
+  "scripts": {
+    "start": "coffee main.coffee --server --watch"
   }
 }
