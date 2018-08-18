@@ -30,3 +30,7 @@ module.exports = (app) ->
         category = req.query.category || "monster"
         data = await redis.load "deck", source, period, category
         res.json data
+
+    app.post '/reset', (req, res) ->
+        await watcher()
+        res.text 'ok'
