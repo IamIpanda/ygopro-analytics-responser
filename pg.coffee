@@ -1,5 +1,6 @@
 pg = require 'pg'
 moment = require 'moment'
+middleware = require './middlewares'
 config = require './config.json'
 
 task = config.task
@@ -35,7 +36,7 @@ queryNamedTable = (name, startTime, endTime, source, period) ->
       period = if period < 0 then 0 else period
       return pool.query PG_QUERY_COUNT_SQL, [endTime, period, source]
     when 'single'
-      return Promise.all ['monster', 'spell', 'trap', 'side', 'ex'].map (category) -> pool.query PG_QUERY_SINGLE_SQL, [startTime, endTime, category, source]
+      return Promise.all ['monster', 'spell', 'trap', 'side', 'ex'].map (category) -> pool.query(PG_QUERY_SINGLE_SQL, [startTime, endTime, category, source]).then middleware.addCardName
   null
 
 queryNamedTag = (datas, startTime, endTime) ->

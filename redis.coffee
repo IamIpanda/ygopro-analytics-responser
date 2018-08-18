@@ -40,7 +40,6 @@ standardRedisPromise = (typeName) ->
         client.get typeName, (err, reply) ->
             if err then reject err else resolve reply
 
-
 module.exports.load = (name, source, period, category) ->
     typeName = "#{name}_#{source}_#{period}"
     switch name
@@ -52,3 +51,5 @@ module.exports.load = (name, source, period, category) ->
             typeName += "_#{category}"
             return standardRedisPromise typeName
     null
+
+module.exports.client = client
