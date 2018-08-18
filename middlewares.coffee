@@ -12,6 +12,7 @@ config = require './config.json'
 
 data.Environment.setConfig databasePath: path.join __dirname, "ygopro-database/locales/"
 LANGUAGE_NAMES = ['zh-CN', 'en-US', 'ja-JP']
+PERIOD_NAMES = {0: 'today', 1: 'day', 7: 'week', 15: 'halfmonth', 30: 'month', '-999': 'season'}
 COUNTER_SUMMARY_NAME = "count_all"
 
 cardNames = {}
@@ -34,9 +35,10 @@ preloadCardNames()
 collectSummaryCounters = ->
     redisCounterData = {}
     for period in config.task.time
-        redisCounterData[period] = {}
+        period_name = PERIOD_NAMES[period]
+        redisCounterData[period_name] = {}
         for source in config.task.source
-            redisCounterData[period][source] = await redis.load 'count', source, period
+            redisCounterData[period_name][source] = await redis.load 'count', source, period
     new Promise (resolve, reject) -> 
         redis.client.set COUNTER_SUMMARY_NAME, JSON.stringify(redisCounterData), (err, reply) -> resolve(reply)
 
