@@ -27,6 +27,6 @@ module.exports = (app) ->
     app.get '/single', (req, res) ->
         source = req.query.source || "unknown"
         period = getPeriod req.query.period
-        category = req.query category || "monster"
+        category = req.query.category || "monster"
         data = await redis.load "deck", source, period, category
         res.json data
