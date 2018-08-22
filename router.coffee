@@ -15,26 +15,26 @@ getPeriod = (type) ->
 module.exports = (app) ->
     app.get '/counter_all', (req, res) ->
         data = await middleware.getSummaryCounters()
-        res.json data
+        res.json JSON.parse data
 
     app.get '/counter', (req, res) ->
         source = req.query.source || "unknown"
         period = getPeriod req.query.period || req.query.type 
         data = await redis.load "count", source, period
-        res.json data
+        res.json JSON.parse data
 
     app.get '/deck', (req, res) ->
         source = req.query.source || "unknown"
         period = getPeriod req.query.period || req.query.type 
         data = await redis.load "deck", source, period
-        res.json data
+        res.json JSON.parse data
 
     app.get '/single', (req, res) ->
         source = req.query.source || "unknown"
         period = getPeriod req.query.period || req.query.type 
         category = req.query.category || "monster"
         data = await redis.load "single", source, period, category
-        res.json data
+        res.json JSON.parse data
 
     app.post '/reset', (req, res) ->
         res.text 'ok'
