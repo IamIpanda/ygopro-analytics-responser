@@ -13,7 +13,7 @@ config = require './config.json'
 data.Environment.setConfig databasePath: path.join __dirname, "ygopro-database/locales/"
 LANGUAGE_NAMES = ['zh-CN', 'en-US', 'ja-JP']
 PERIOD_NAMES = {0: 'today', 1: 'day', 7: 'week', 15: 'halfmonth', 30: 'month', '-999': 'season'}
-COUNTER_SUMMARY_NAME = "count_all"！~
+COUNTER_SUMMARY_NAME = "count_all"
 
 cardNames = {}
 
