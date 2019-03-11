@@ -32,9 +32,18 @@ module.exports = (app) ->
     app.get '/single', (req, res) ->
         source = req.query.source || "unknown"
         period = getPeriod req.query.period || req.query.type 
-        category = req.query.category || "monster"
-        data = await redis.load "single", source, period, category
-        res.json JSON.parse data
+        category = req.query.category
+        if category
+            data = await redis.load "single", source, period, category
+            res.json JSON.parse data
+        else
+            res.json {
+                monster: JSON.parse(await redis.load "single", source, period, "monster")
+                spell: JSON.parse(await redis.load "single", source, period, "spell")
+                trap: JSON.parse(await redis.load "single", source, period, "trap")
+                side: JSON.parse(await redis.load "single", source, period, "side")
+                ex: JSON.parse(await redis.load "single", source, period, "ex")
+            }
 
     app.post '/reset', (req, res) ->
         res.text 'ok'
