@@ -41,6 +41,7 @@ standardRedisPromise = (typeName) ->
             if err then reject err else resolve reply
 
 module.exports.load = (name, source, period, category) ->
+    source = source.replace /entertain(?!ment)/, 'entertainment'
     typeName = "#{name}_#{source}_#{period}"
     switch name
         when 'deck'

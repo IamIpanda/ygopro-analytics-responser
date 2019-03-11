@@ -8,9 +8,9 @@ list = config.listTime
 pool = new pg.Pool config.pg
 
 PG_QUERY_SINGLE_SQL = "SELECT id, category, source, sum(frequency), sum(numbers), sum(putone), sum(puttwo), sum(putthree), sum(putoverthree) from single_day WHERE time >= $1::Date and time < $2::Date and category = $3::varchar and source = $4::varchar GROUP BY (id, category, source) ORDER BY sum(frequency) DESC LIMIT 100"
-PG_QUERY_DECK_SQL = "SELECT name, source, sum(count) from deck_day WHERE time >= $1::Date and time < $2::Date and source = $3::varchar GROUP BY (name, source) ORDER BY sum(count) DESC LIMIT 100"
+PG_QUERY_DECK_SQL = "SELECT name, source, sum(count) from deck_day WHERE time >= $1::Date and time < $2::Date and source = $3::varchar GROUP BY name, source ORDER BY sum(count) DESC LIMIT 100"
 PG_QUERY_COUNT_SQL = "SELECT count from counter WHERE time = $1::Date and timeperiod = $2::integer and source = $3::varchar"
-PG_QUERY_TAG_SQL = "SELECT name, source, sum(count) from tag_day where time >= $1::Date and time < $2::Date and name like $3::varchar GROUP BY (name, source) ORDER BY sum(count) DESC LIMIT 3"
+PG_QUERY_TAG_SQL = "SELECT name, source, sum(count) from tag_day where time >= $1::Date and time < $2::Date and name like $3::varchar and source = $4::varchar GROUP BY name, source ORDER BY sum(count) DESC LIMIT 3"
 
 formatTime = (moment) -> moment.format("YYYY-MM-DD")
 calculateTime = (period) ->
@@ -31,7 +31,7 @@ queryNamedTable = (name, startTime, endTime, source, period) ->
   switch name
     when 'deck'
       promise = pool.query PG_QUERY_DECK_SQL, [startTime, endTime, source]
-      return promise.then (result) => queryNamedTag result.rows, startTime, endTime
+      return promise.then (result) => queryNamedTag result.rows, startTime, endTime, source
     when 'count'
       period = if period < 0 then 0 else period
       return pool.query PG_QUERY_COUNT_SQL, [endTime, period, source]
@@ -39,9 +39,9 @@ queryNamedTable = (name, startTime, endTime, source, period) ->
       return Promise.all ['monster', 'spell', 'trap', 'side', 'ex'].map (category) -> pool.query(PG_QUERY_SINGLE_SQL, [startTime, endTime, category, source]).then middleware.addCardName
   null
 
-queryNamedTag = (datas, startTime, endTime) ->
+queryNamedTag = (datas, startTime, endTime, source) ->
   Promise.all datas.map (data) ->
-    pool.query(PG_QUERY_TAG_SQL, [startTime, endTime, "#{data.name}-%"]).then (tags) ->
+    pool.query(PG_QUERY_TAG_SQL, [startTime, endTime, "#{data.name}-%", source]).then (tags) ->
       data.tags = tags.rows.map (tag) => tag.name
       data
 
