@@ -47,6 +47,7 @@ queryNamedTag = (datas, startTime, endTime, source) ->
 
 module.exports.query = ->
   for source from task.source
+    source = source.replace /entertain(?!ment)/, 'entertainment'
     for period from task.time
       [startTime, endTime] = calculateTime period
       promises = task.table.map (table) => queryNamedTable table, startTime, endTime, source, period
