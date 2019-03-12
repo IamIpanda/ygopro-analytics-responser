@@ -23,9 +23,9 @@ calculateTime = (period) ->
         return [formatTime(lastTime), formatTime(now.subtract 1, 'days')]
     lastTime = time
   else if period == 0
-    [formatTime(now), formatTime(now)]
+    [formatTime(now), formatTime(moment(now).add 1, 'days')]
   else
-    [formatTime(moment(now).subtract period + 1, 'days'), formatTime(now.subtract 1, 'days')]
+    [formatTime(moment(now).subtract period, 'days'), formatTime(now)]
 
 queryNamedTable = (name, startTime, endTime, source, period) ->
   switch name
