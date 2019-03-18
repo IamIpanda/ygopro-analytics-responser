@@ -7,8 +7,8 @@ task = config.task
 list = config.listTime
 pool = new pg.Pool config.pg
 
-PG_QUERY_SINGLE_SQL = "SELECT id, category, source, sum(frequency) frequency, sum(numbers) numbers, sum(putone) putone, sum(puttwo) puttwo, sum(putthree) putthree, sum(putoverthree) putoverthree from single_day WHERE time >= $1::Date and time < $2::Date and category = $3::varchar and source = $4::varchar GROUP BY (id, category, source) ORDER BY sum(frequency) DESC LIMIT 100"
-PG_QUERY_DECK_SQL = "SELECT name, source, sum(count) count from deck_day WHERE time >= $1::Date and time < $2::Date and source = $3::varchar GROUP BY name, source ORDER BY sum(count) DESC LIMIT 100"
+PG_QUERY_SINGLE_SQL = "SELECT id, max(time), category, source, sum(frequency) frequency, sum(numbers) numbers, sum(putone) putone, sum(puttwo) puttwo, sum(putthree) putthree, sum(putoverthree) putoverthree from single_day WHERE time >= $1::Date and time < $2::Date and category = $3::varchar and source = $4::varchar GROUP BY (id, category, source) ORDER BY sum(frequency) DESC LIMIT 100"
+PG_QUERY_DECK_SQL = "SELECT name, max(time), source, sum(count) count from deck_day WHERE time >= $1::Date and time < $2::Date and source = $3::varchar GROUP BY name, source ORDER BY sum(count) DESC LIMIT 100"
 PG_QUERY_COUNT_SQL = "SELECT count from counter WHERE time = $1::Date and timeperiod = $2::integer and source = $3::varchar"
 PG_QUERY_TAG_SQL = "SELECT name, source, sum(count) count from tag_day where time >= $1::Date and time < $2::Date and name like $3::varchar and source = $4::varchar GROUP BY name, source ORDER BY sum(count) DESC LIMIT 3"
 
@@ -34,7 +34,7 @@ queryNamedTable = (name, startTime, endTime, source, period) ->
       return promise.then (result) => queryNamedTag result.rows, startTime, endTime, source
     when 'count'
       period = if period < 0 then 0 else period
-      return pool.query PG_QUERY_COUNT_SQL, [endTime, period, source]
+      return pool.query PG_QUERY_COUNT_SQL, [startTime, period, source]
     when 'single'
       return Promise.all ['monster', 'spell', 'trap', 'side', 'ex'].map (category) -> pool.query(PG_QUERY_SINGLE_SQL, [startTime, endTime, category, source]).then middleware.addCardName
   null
