@@ -9,6 +9,7 @@ getPeriod = (type) ->
         when "day" then return 1
         when "week" then return 7
         when "halfmonth" then return 15
+        when "month" then return 30
         when "season" then return -999
     return 1
 
