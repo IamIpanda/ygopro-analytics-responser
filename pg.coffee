@@ -21,7 +21,7 @@ calculateTime = (period) ->
     for time in listTimes
       if time.isSameOrAfter now
         return [formatTime(lastTime), formatTime(now.subtract 1, 'days')]
-    lastTime = time
+      lastTime = time
   else if period == 0
     [formatTime(now), formatTime(moment(now).add 1, 'days')]
   else
