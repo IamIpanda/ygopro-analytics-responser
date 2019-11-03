@@ -7,7 +7,8 @@ module.exports.save = (query) ->
     i = 0
     for part from query.result
         name = task.table[i++]
-        typeName = "#{name}_#{query.source}_#{query.period}"
+        source = query.source.replace /entertain(?!ment)/, 'entertainment'
+        typeName = "#{name}_#{source}_#{query.period}"
         switch name
             when 'deck'
                 obj = part
