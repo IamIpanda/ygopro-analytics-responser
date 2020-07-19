@@ -29,6 +29,12 @@ module.exports = (app) ->
         period = getPeriod req.query.period || req.query.type 
         data = await redis.load "deck", source, period
         res.json JSON.parse data
+    
+    app.get '/matchup', (req, res) ->
+        source = req.query.source || "unkown"
+        period = 1
+        data = await redis.load "matchup", source, period
+        res.json JSON.parse data
 
     app.get '/single', (req, res) ->
         source = req.query.source || "unknown"

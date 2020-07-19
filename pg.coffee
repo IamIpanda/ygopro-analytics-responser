@@ -13,6 +13,7 @@ PG_QUERY_COUNT_SQL = "SELECT count from count WHERE time = $1::Date and timeperi
 PG_QUERY_TAG_SQL = "SELECT name, source, sum(count) count from tag where time >= $1::Date and time < $2::Date and name like $3::varchar and source = $4::varchar GROUP BY name, source ORDER BY sum(count) DESC LIMIT 3"
 PG_QUERY_MATCHUP_FIRST_SQL  = "select decka, sum(win) win, sum(draw) draw, sum(lose) lose from matchup where source = $1::varchar and period = $2::varchar and decka = $3::varchar group by decka;"
 PG_QUERY_MATCHUP_SECOND_SQL = "select deckb, sum(win) win, sum(draw) draw, sum(lose) lose from matchup where source = $1::varchar and period = $2::varchar and deckb = $3::varchar group by deckb;"
+PG_QUERY_MATCHUP_DETAIL_SQL = "select decka, deckb, win, draw, lose from matchup where source = $1::varchar and period = $2::varchar and decka in $3 and deckb in $3"
 
 formatTime = (moment) -> moment.format("YYYY-MM-DD")
 calculateTime = (period) ->
@@ -28,16 +29,9 @@ calculateTime = (period) ->
     [formatTime(now), formatTime(moment(now).add 1, 'days')]
   else
     [formatTime(moment(now).subtract period, 'days'), formatTime(now)]
+
 queryNamedTable = (name, startTime, endTime, source, period) ->
   switch name
-    when 'matchup'
-      return [] unless source == 'mycard-athletic' || source == 'mycard-entertain'
-      return [] unless period == 1
-      time = moment().format('YYYY-MM')
-      return Promise.all [ 
-        pool.query PG_QUERY_MATCHUP_FIRST_SQL, [source.slice(7), time]
-        pool.query PG_QUERY_MATCHUP_SECOND_SQL, [source.slice(7), time]
-      ]
     when 'deck'
       promise = pool.query PG_QUERY_DECK_SQL, [startTime, endTime, source]
       return promise.then (result) => await queryNamedTag result.rows, startTime, endTime, source; result
@@ -47,6 +41,13 @@ queryNamedTable = (name, startTime, endTime, source, period) ->
       return pool.query PG_QUERY_COUNT_SQL, [startTime, period, source]
     when 'single'
       return Promise.all ['monster', 'spell', 'trap', 'side', 'ex'].map (category) -> pool.query(PG_QUERY_SINGLE_SQL, [startTime, endTime, category, source]).then middleware.addCardName
+    when 'matchup'
+      return null unless source == 'mycard-athletic' || source == 'mycard-entertain'
+      return null unless period == 1
+      decks = await pool.query PG_QUERY_DECK_SQL, [startTime, endTime, source]
+      names = decks.rows.map((data) => data.name).slice 0, 10
+      name_description = "('" + names.join("','") + "')"
+      return pool.query PG_QUERY_MATCHUP_DETAIL_SQL.replace("$3", name_description).replace("$3", name_description), [source.slice(7), moment().format('YYYY-MM')]
   null
 
 queryNamedTag = (datas, startTime, endTime, source) ->

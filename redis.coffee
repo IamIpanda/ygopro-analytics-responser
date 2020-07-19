@@ -35,6 +35,13 @@ module.exports.save = (query) ->
                     json = JSON.stringify obj
                     client.set subTypeName, json
                     console.log "Setting redis #{subTypeName}"
+            when 'matchup'
+                continue unless part
+                obj = part.rows
+                continue unless obj
+                json = JSON.stringify obj
+                client.set typeName, json 
+                console.log "Setting redis #{typeName}"
 
 standardRedisPromise = (typeName) ->
     new Promise (resolve, reject) ->
@@ -51,6 +58,8 @@ module.exports.load = (name, source, period, category) ->
             return standardRedisPromise typeName
         when 'single'
             typeName += "_#{category}"
+            return standardRedisPromise typeName
+        when 'matchup'
             return standardRedisPromise typeName
     null
 
