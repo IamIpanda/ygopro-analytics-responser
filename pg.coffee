@@ -62,12 +62,18 @@ queryMatchup = (datas, source) ->
   period = moment().format('YYYY-MM')
   await Promise.all datas.map (data) ->
     data.matchup =
-      first:  null
-      second: null
+      first:  
+        win: 0
+        lose: 0
+        draw: 0
+      second: 
+        win: 0
+        lose: 0
+        draw: 0
     await pool.query(PG_QUERY_MATCHUP_FIRST_SQL,  [source, period, data.name]).then (matchup) ->
-      data.matchup.first = matchup.rows[0]
+      data.matchup.first = matchup.rows[0] if matchup.rows[0]
     await pool.query(PG_QUERY_MATCHUP_SECOND_SQL, [source, period, data.name]).then (matchup) ->
-      data.matchup.second = matchup.rows[0]
+      data.matchup.second = matchup.rows[0] if matchup.rows[0]
     data
 
 module.exports.query = ->
