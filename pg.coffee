@@ -9,7 +9,7 @@ pool = new pg.Pool config.pg
 
 PG_QUERY_SINGLE_SQL = "SELECT id, max(time) recent_time, category, source, sum(frequency) frequency, sum(numbers) numbers, sum(putone) putone, sum(puttwo) puttwo, sum(putthree) putthree, sum(putoverthree) putoverthree from single WHERE time >= $1::Date and time < $2::Date and category = $3::varchar and source = $4::varchar GROUP BY (id, category, source) ORDER BY sum(frequency) DESC LIMIT 100"
 PG_QUERY_DECK_SQL = "SELECT name, max(time) recent_time, source, sum(count) count from deck WHERE time >= $1::Date and time < $2::Date and source = $3::varchar GROUP BY name, source ORDER BY sum(count) DESC LIMIT 100"
-PG_QUERY_COUNT_SQL = "SELECT count from count WHERE time = $1::Date and timeperiod = $2::integer and source = $3::varchar"
+PG_QUERY_COUNT_SQL = "SELECT sum(count) count from count WHERE time >= $1::Date and time < $2::Date and source = $3::varchar"
 PG_QUERY_TAG_SQL = "SELECT name, source, sum(count) count from tag where time >= $1::Date and time < $2::Date and name like $3::varchar and source = $4::varchar GROUP BY name, source ORDER BY sum(count) DESC LIMIT 3"
 PG_QUERY_MATCHUP_FIRST_SQL  = "select decka, sum(win) win, sum(draw) draw, sum(lose) lose from matchup where source = $1::varchar and period = $2::varchar and decka = $3::varchar group by decka;"
 PG_QUERY_MATCHUP_SECOND_SQL = "select deckb, sum(win) win, sum(draw) draw, sum(lose) lose from matchup where source = $1::varchar and period = $2::varchar and deckb = $3::varchar group by deckb;"
@@ -38,7 +38,7 @@ queryNamedTable = (name, startTime, endTime, source, period) ->
                     .then (result) => await queryMatchup  result.rows, source
     when 'count'
       period = if period < 0 then 0 else period
-      return pool.query PG_QUERY_COUNT_SQL, [startTime, period, source]
+      return pool.query PG_QUERY_COUNT_SQL, [startTime, endTime, source]
     when 'single'
       return Promise.all ['monster', 'spell', 'trap', 'side', 'ex'].map (category) -> pool.query(PG_QUERY_SINGLE_SQL, [startTime, endTime, category, source]).then middleware.addCardName
     when 'matchup'
