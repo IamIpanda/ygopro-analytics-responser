@@ -42,12 +42,19 @@ queryNamedTable = (name, startTime, endTime, source, period) ->
     when 'single'
       return Promise.all ['monster', 'spell', 'trap', 'side', 'ex'].map (category) -> pool.query(PG_QUERY_SINGLE_SQL, [startTime, endTime, category, source]).then middleware.addCardName
     when 'matchup'
+      # Here we around nearly all the rules when I design the project.
+      # Anyway, it works.
       return null unless source == 'mycard-athletic' || source == 'mycard-entertain'
       return null unless period == 1
-      decks = await pool.query PG_QUERY_DECK_SQL, [startTime, endTime, source]
+      startTime = moment(startTime)
+      endTime = moment(endTime)
+      if moment().date() <= 20
+        startTime.subtract 1, 'month'
+        endTime.subtract 1, 'month'
+      decks = await pool.query PG_QUERY_DECK_SQL, [formatTime(startTime), formatTime(endTime), source]
       names = decks.rows.map((data) => data.name).slice 0, 10
       name_description = "('" + names.join("','") + "')"
-      return pool.query PG_QUERY_MATCHUP_DETAIL_SQL.replace("$3", name_description).replace("$3", name_description), [source.slice(7), moment().format('YYYY-MM')]
+      return pool.query PG_QUERY_MATCHUP_DETAIL_SQL.replace("$3", name_description).replace("$3", name_description), [source.slice(7), endTime.format('YYYY-MM')]
   null
 
 queryNamedTag = (datas, startTime, endTime, source) ->
