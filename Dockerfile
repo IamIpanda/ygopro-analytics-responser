@@ -1,4 +1,4 @@
-FROM node
+FROM node:16
 WORKDIR /usr/src/app
 
 RUN cp /usr/share/zoneinfo/Asia/Shanghai /etc/localtime

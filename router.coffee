@@ -31,7 +31,7 @@ module.exports = (app) ->
         res.json JSON.parse data
     
     app.get '/matchup', (req, res) ->
-        source = req.query.source || "unkown"
+        source = req.query.source || "unknown"
         period = 1
         data = await redis.load "matchup", source, period
         res.json JSON.parse data

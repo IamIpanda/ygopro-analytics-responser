@@ -11,9 +11,9 @@ PG_QUERY_SINGLE_SQL = "SELECT id, max(time) recent_time, category, source, sum(f
 PG_QUERY_DECK_SQL = "SELECT name, max(time) recent_time, source, sum(count) count from deck WHERE time >= $1::Date and time < $2::Date and source = $3::varchar GROUP BY name, source ORDER BY sum(count) DESC LIMIT 100"
 PG_QUERY_COUNT_SQL = "SELECT sum(count) count from count WHERE time >= $1::Date and time < $2::Date and source = $3::varchar"
 PG_QUERY_TAG_SQL = "SELECT name, source, sum(count) count from tag where time >= $1::Date and time < $2::Date and name like $3::varchar and source = $4::varchar GROUP BY name, source ORDER BY sum(count) DESC LIMIT 3"
-PG_QUERY_MATCHUP_FIRST_SQL  = "select decka, sum(win) win, sum(draw) draw, sum(lose) lose from matchup where source = $1::varchar and period = $2::varchar and decka = $3::varchar group by decka;"
-PG_QUERY_MATCHUP_SECOND_SQL = "select deckb, sum(win) win, sum(draw) draw, sum(lose) lose from matchup where source = $1::varchar and period = $2::varchar and deckb = $3::varchar group by deckb;"
-PG_QUERY_MATCHUP_DETAIL_SQL = "select decka, deckb, win, draw, lose from matchup where source = $1::varchar and period = $2::varchar and decka in $3 and deckb in $3"
+PG_QUERY_MATCHUP_FIRST_SQL  = "select decka, sum(win) win, sum(draw) draw, sum(lose) lose from matchup where source = $1::varchar and period = $2::varchar and decka = $3::varchar and type = $4::varchar group by decka;"
+PG_QUERY_MATCHUP_SECOND_SQL = "select deckb, sum(win) win, sum(draw) draw, sum(lose) lose from matchup where source = $1::varchar and period = $2::varchar and deckb = $3::varchar and type = $4::varchar group by deckb;"
+PG_QUERY_MATCHUP_DETAIL_SQL = "select decka, deckb, win, draw, lose from matchup where source = $1::varchar and period = $2::varchar and decka in $3 and deckb in $3 and type = $4::varchar"
 
 formatTime = (moment) -> moment.format("YYYY-MM-DD")
 calculateTime = (period) ->
@@ -41,7 +41,7 @@ queryNamedTable = (name, startTime, endTime, source, period) ->
       return pool.query PG_QUERY_COUNT_SQL, [startTime, endTime, source]
     when 'single'
       return Promise.all ['monster', 'spell', 'trap', 'side', 'ex'].map (category) -> pool.query(PG_QUERY_SINGLE_SQL, [startTime, endTime, category, source]).then middleware.addCardName
-    when 'matchup'
+    when 'matchup', 'duel_matchup'
       # Here we around nearly all the rules when I design the project.
       # Anyway, it works.
       return null unless source == 'mycard-athletic' || source == 'mycard-entertain'
@@ -54,7 +54,7 @@ queryNamedTable = (name, startTime, endTime, source, period) ->
       decks = await pool.query PG_QUERY_DECK_SQL, [formatTime(startTime), formatTime(endTime), source]
       names = decks.rows.map((data) => data.name).slice 0, 10
       name_description = "('" + names.join("','") + "')"
-      return pool.query PG_QUERY_MATCHUP_DETAIL_SQL.replace("$3", name_description).replace("$3", name_description), [source.slice(7), endTime.format('YYYY-MM')]
+      return pool.query PG_QUERY_MATCHUP_DETAIL_SQL.replace("$3", name_description).replace("$3", name_description), [source.slice(7), endTime.format('YYYY-MM'), if name == 'matchup' then 'match' else 'duel']
   null
 
 queryNamedTag = (datas, startTime, endTime, source) ->
@@ -77,9 +77,9 @@ queryMatchup = (datas, source) ->
         win: 0
         lose: 0
         draw: 0
-    await pool.query(PG_QUERY_MATCHUP_FIRST_SQL,  [source, period, data.name]).then (matchup) ->
+    await pool.query(PG_QUERY_MATCHUP_FIRST_SQL,  [source, period, data.name, 'match']).then (matchup) ->
       data.matchup.first = matchup.rows[0] if matchup.rows[0]
-    await pool.query(PG_QUERY_MATCHUP_SECOND_SQL, [source, period, data.name]).then (matchup) ->
+    await pool.query(PG_QUERY_MATCHUP_SECOND_SQL, [source, period, data.name, 'match']).then (matchup) ->
       data.matchup.second = matchup.rows[0] if matchup.rows[0]
     data
 
