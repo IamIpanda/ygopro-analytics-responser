@@ -54,7 +54,13 @@ queryNamedTable = (name, startTime, endTime, source, period) ->
       decks = await pool.query PG_QUERY_DECK_SQL, [formatTime(moment(endTime).subtract(6, 'days')), formatTime(endTime), source]
       names = decks.rows.map((data) => data.name).slice 0, 10
       name_description = "('" + names.join("','") + "')"
-      return pool.query PG_QUERY_MATCHUP_DETAIL_SQL.replace("$3", name_description).replace("$3", name_description).replace("$4", "$3"), [source.slice(7), endTime.format('YYYY-MM'), if name == 'matchup' then 'match' else 'duel']
+      result = await pool.query PG_QUERY_MATCHUP_DETAIL_SQL.replace("$3", name_description).replace("$3", name_description).replace("$4", "$3"), [source.slice(7), endTime.format('YYYY-MM'), if name == 'matchup' then 'match' else 'duel']
+      seen = {}
+      (seen[row.decka] ?= {})[row.deckb] = yes for row in result.rows
+      for decka in names
+        for deckb in names when not seen[decka]?[deckb]
+          result.rows.push {decka: decka, deckb: deckb, win: 0, draw: 0, lose: 0}
+      return result
   null
 
 
