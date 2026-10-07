@@ -46,12 +46,14 @@ queryNamedTable = (name, startTime, endTime, source, period) ->
       # Anyway, it works.
       return null unless source == 'mycard-athletic' || source == 'mycard-entertain'
       return null unless period == 1
+      deckStartTime = formatTime(moment(endTime).subtract(7, 'days'))
+      deckEndTime = formatTime(endTime)
       startTime = moment(startTime)
       endTime = moment(endTime)
       if moment().date() <= 6
         startTime.subtract 1, 'month'
         endTime.subtract 1, 'month'
-      decks = await pool.query PG_QUERY_DECK_SQL, [formatTime(moment(endTime).subtract(6, 'days')), formatTime(endTime), source]
+      decks = await pool.query PG_QUERY_DECK_SQL, [deckStartTime, deckEndTime, source]
       names = decks.rows.map((data) => data.name).slice 0, 10
       name_description = "('" + names.join("','") + "')"
       result = await pool.query PG_QUERY_MATCHUP_DETAIL_SQL.replace("$3", name_description).replace("$3", name_description).replace("$4", "$3"), [source.slice(7), endTime.format('YYYY-MM'), if name == 'matchup' then 'match' else 'duel']
