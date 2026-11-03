@@ -46,10 +46,10 @@ queryNamedTable = (name, startTime, endTime, source, period) ->
       # Anyway, it works.
       return null unless source == 'mycard-athletic' || source == 'mycard-entertain'
       return null unless period == 1
-      deckStartTime = formatTime(moment(endTime).subtract(7, 'days'))
-      deckEndTime = formatTime(endTime)
       startTime = moment(startTime)
       endTime = moment(endTime)
+      deckStartTime = formatTime(moment(endTime).subtract(7, 'days'))
+      deckEndTime = formatTime(endTime)
       if moment().date() <= 6
         startTime.subtract 1, 'month'
         endTime.subtract 1, 'month'
